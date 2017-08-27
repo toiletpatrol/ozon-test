@@ -16,12 +16,23 @@ export default class Post {
 
     let data = this.data;
 
-    // Header
+    // Assets: Header
     let pic = data.user.profile_picture;
     let username = data.user.username;
     let location = data.location && data.location.name;
     let date = format(data.created_time);
 
+    // Assets: Image
+    let src = data.images && data.images.standard_resolution && data.images.standard_resolution.url;
+    let alt = `@${username}`;
+
+    // Assets: Actions
+    let likes = data.likes.count;
+
+    // Assets: Caption
+    let captionText = data.caption && data.caption.text;
+
+    // Template
     let header = `
       <div class="post_header">
         <div class="post_header-pic" style="background-image: url('${pic}');"></div>
@@ -32,16 +43,11 @@ export default class Post {
         <div class="post_header-date">${date}</div>
       </div>`;
 
-    let src = data.images && data.images.standard_resolution && data.images.standard_resolution.url;
-    let alt = `@${username}`;
-
-    let image = `
-      <div class="post_image">
+    let image = (className) => `
+      <div class="post_image ${className}">
         <img src="${src}" alt="${alt}" />
       </div>
     `;
-
-    let likes = data.likes.count;
 
     let actions = `
       <div class="post_actions">
@@ -50,11 +56,22 @@ export default class Post {
       </div>
     `;
 
-    let captionText = data.caption && data.caption.text;
     let caption = captionText ? `<div class="post_caption">${captionText}</div>` : '';
 
-    this.element.innerHTML = header + image + actions + caption;
+    this.element.innerHTML = `
+      <div class="post_inner">
+        ${image('post_image__horizontal')}
 
+        <div class="post_inner-solid">
+          ${header}
+          ${image('post_image__vertical')}
+          ${actions}
+          ${caption}
+        </div>
+      </div>
+    `;
+
+    // Actions
     this.element.getElementsByClassName('post_actions-like')[0].onclick = () => {
       alert(this.data.id);
     };
