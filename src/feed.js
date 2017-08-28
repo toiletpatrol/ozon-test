@@ -4,6 +4,8 @@ export default class Feed {
 
     this.element = document.createElement('div');
     this.element.setAttribute('class', 'feed');
+
+    this.render();
   }
 
   getElement() {
@@ -21,21 +23,5 @@ export default class Feed {
       let postElement = posts[i].getElement();
       this.element.appendChild(postElement);
     }
-  }
-
-  getColumnsCount() {
-    let w = getElementContentWidth(this.element);
-    let columns = 0;
-
-    while (w > (DESKTOP_COLUMN_WIDTH + DESKTOP_COLUMN_GAP)) {
-      w -= (DESKTOP_COLUMN_WIDTH + DESKTOP_COLUMN_GAP);
-      columns++;
-    }
-
-    if (w > DESKTOP_COLUMN_WIDTH) {
-      columns++;
-    }
-
-    return columns ? columns : 1;
   }
 }
