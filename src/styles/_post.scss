@@ -36,7 +36,7 @@ $huge_gap: 24px;
   @media screen and (max-width: 768px) and (min-width: 650px) {
     margin: $huge_gap;
     padding-bottom: $huge_gap;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -104,6 +104,7 @@ $huge_gap: 24px;
 
   @media screen and (max-width: 768px) and (min-width: 650px) {
     padding: 0 $huge_gap;
+    margin: 0 0 $tiny_gap;
   }
 }
 
