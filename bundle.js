@@ -72,7 +72,9 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _request = __webpack_require__(1);
+var _jsonp = __webpack_require__(1);
+
+var _jsonp2 = _interopRequireDefault(_jsonp);
 
 var _post = __webpack_require__(2);
 
@@ -90,13 +92,13 @@ var App = function () {
   function App() {
     _classCallCheck(this, App);
 
-    this.fetch();
-
     var preloader = document.createElement('div');
     preloader.className = 'preloader';
     preloader.innerHTML = '<div>Loading...</div>';
 
     document.body.appendChild(preloader);
+
+    this.fetch();
   }
 
   _createClass(App, [{
@@ -104,7 +106,7 @@ var App = function () {
     value: function fetch() {
       var _this = this;
 
-      _request.jsonp.get('https://api.instagram.com/v1/users/691623/media/recent', {
+      (0, _jsonp2.default)('https://api.instagram.com/v1/users/691623/media/recent', {
         data: {
           access_token: '691623.1419b97.479e4603aff24de596b1bf18891729f3',
           count: 20,
@@ -123,13 +125,9 @@ var App = function () {
   }, {
     key: 'parseData',
     value: function parseData(data) {
-      var posts = [];
-
-      for (var i = 0; i < data.data.length; i++) {
-        posts.push(new _post2.default(data.data[i]));
-      }
-
-      return posts;
+      return data.data.map(function (e) {
+        return new _post2.default(e);
+      });
     }
   }, {
     key: 'render',
@@ -139,8 +137,6 @@ var App = function () {
 
       document.body.innerHTML = '';
       document.body.appendChild(feedElement);
-
-      feed.render();
     }
   }]);
 
@@ -159,71 +155,52 @@ var app = new App();
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+/**
+ * Data to string
+ * @param {Object}
+ * return {String}
+ */
 var serialize = function serialize(data) {
   var str = '';
-
   for (var i in data) {
     str += i + '=' + data[i] + '&';
   }
-
   return str.replace(/&$/, '');
 };
 
-var jsonp = function () {
-  var that = {};
+/**
+ * Sends get request
+ * @param {String}
+ * @param {Object}
+ */
+var jsonp = function jsonp(url, options) {
+  var callback_name = options.callbackName || 'callback',
+      on_success = options.onSuccess || function () {},
+      on_timeout = options.onTimeout || function () {},
+      timeout = options.timeout || 10,
+      data = options.data || {};
 
-  /**
-   * Sends get request
-   * @param {String}
-   * @param {Object}
-   */
-  that.get = function (url, options) {
-    var callback_name = options.callbackName || 'callback',
-        on_success = options.onSuccess || function () {},
-        on_timeout = options.onTimeout || function () {},
-        timeout = options.timeout || 10,
-        data = options.data || {};
+  var timeout_trigger = window.setTimeout(function () {
+    window[callback_name] = function () {};
+    on_timeout();
+  }, timeout * 1000);
 
-    var timeout_trigger = window.setTimeout(function () {
-      window[callback_name] = function () {};
-      on_timeout();
-    }, timeout * 1000);
-
-    window[callback_name] = function (data) {
-      window.clearTimeout(timeout_trigger);
-      on_success(data);
-    };
-
-    var urlWithData = data ? url + '?' + serialize(data) : url;
-
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.async = true;
-    script.src = urlWithData;
-
-    document.getElementsByTagName('head')[0].appendChild(script);
+  window[callback_name] = function (data) {
+    window.clearTimeout(timeout_trigger);
+    on_success(data);
   };
 
-  return that;
-}();
+  var urlWithData = data ? url + '?' + serialize(data) : url;
 
-var ajax = {
-  get: function get(url, data, callback) {
-    var urlWithData = data ? url + '?' + serialize(data) : url;
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.async = true;
+  script.src = urlWithData;
 
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function () {
-      if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-        callback(xmlHttp.responseText);
-      }
-    };
-    xmlHttp.open('GET', urlWithData, true);
-    xmlHttp.send(null);
-  }
+  document.getElementsByTagName('head')[0].appendChild(script);
 };
 
-exports.ajax = ajax;
-exports.jsonp = jsonp;
+exports.default = jsonp;
 
 /***/ }),
 /* 2 */
@@ -383,6 +360,8 @@ var Feed = function () {
 
     this.element = document.createElement('div');
     this.element.setAttribute('class', 'feed');
+
+    this.render();
   }
 
   _createClass(Feed, [{
@@ -403,23 +382,6 @@ var Feed = function () {
         var postElement = posts[i].getElement();
         this.element.appendChild(postElement);
       }
-    }
-  }, {
-    key: 'getColumnsCount',
-    value: function getColumnsCount() {
-      var w = getElementContentWidth(this.element);
-      var columns = 0;
-
-      while (w > DESKTOP_COLUMN_WIDTH + DESKTOP_COLUMN_GAP) {
-        w -= DESKTOP_COLUMN_WIDTH + DESKTOP_COLUMN_GAP;
-        columns++;
-      }
-
-      if (w > DESKTOP_COLUMN_WIDTH) {
-        columns++;
-      }
-
-      return columns ? columns : 1;
     }
   }]);
 
